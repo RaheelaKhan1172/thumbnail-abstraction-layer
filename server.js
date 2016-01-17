@@ -23,10 +23,14 @@ function retrieveData(res) {
   MongoClient.connect(mongourl,function(err,db) {
     var cursor = db.collection('usersearches').find();
     cursor.toArray(function(err,doc) {
-      res.end(JSON.stringify(doc));
+      doc = doc.map(function(a) {
+        var currId = a._id;
+        a._id = ObjectId(currId).getTimestamp();
+        return a = JSON.parse(JSON.stringify(a).replace(/"_id":/g,'"when":'));
+      });
+      console.log(doc);
+      res.end(JSON.stringify(doc)); 
     });
-    console.log();
-    var toSend;
     });
   }
 
@@ -48,7 +52,6 @@ app.get('/api/imagesearch/:id',function(req,res) {
   request(url,function(error,response,html) {
     if (error) throw error;
     var $ = cheerio.load(html);
-    console.log('well do I happen?'); 
     var data = $("a");
     var data2 = $("img");
     var hrefArr = [];
@@ -69,7 +72,6 @@ app.get('/api/imagesearch/:id',function(req,res) {
     dataToReturn = hrefArr.map(function(a,i) {
       return {"url":hrefArr[i], "image": imgArr[i]}
     }); 
-    console.log(dataToReturn,'wtf');
     res.end(JSON.stringify(dataToReturn));  
   });
 });
